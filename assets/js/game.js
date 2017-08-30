@@ -2,14 +2,17 @@ $(document).ready(function(){
 
 	$("#play").on("click", function(){
 		$("#gameboard").empty();
-
-		$("#gameboard").html("<form id='nameform'><input id='username' type='text' placeholder='name'></input><input type='submit' value='Submit'></input></form>");
-
+		if(!loggedIn()){
+			$("#gameboard").html("<form id='nameform'><input id='username' type='text' placeholder='name'></input><input id='submit' type='submit' value='Submit'></input></form>");
+		}else{
+			displayRPS();
+		}
 	});
 
 
 	$(document).on("submit", function(event){
 		event.preventDefault();
+		submitName();
 		displayRPS(event);
 	});
 
@@ -27,20 +30,21 @@ $(document).ready(function(){
 		return null
 	}
 
-	function timeOut(printOut, time){
-		setTimeout(function(){
-			$("#gameboard").html(printOut);
-			console.log(printOut);
-		}, time);
-
-		return null
-	}
 
 	$(document).on("weapon","click", function(){
 
 	// Upload weapon to database
 
 	});
+
+	function timeOut(printOut, time){
+		setTimeout(function(){
+			$("#gameboard").html(printOut);
+		}, time);
+
+		return null
+	}
+
 
 	function showRound(){
 		
