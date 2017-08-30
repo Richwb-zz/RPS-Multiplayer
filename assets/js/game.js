@@ -31,11 +31,11 @@ $(document).ready(function(){
 	}
 
 
-	$(document).on("weapon","click", function(){
+	// $(document).on("weapon","click", function(){
 
-	// Upload weapon to database
+	// // Upload weapon to database
 
-	});
+	// });
 
 	function timeOut(printOut, time){
 		setTimeout(function(){
