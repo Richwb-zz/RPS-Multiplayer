@@ -5,31 +5,53 @@
     authDomain: "rpsmp-81e87.firebaseapp.com",
     databaseURL: "https://rpsmp-81e87.firebaseio.com"
   };
+
+  var firebaseUser;
   
-  firebase.initializeApp(config);
+firebase.initializeApp(config);
 
-firebase.auth().signOut();
-
-var user ="";
-
-firebase.auth().onAuthStateChanged(firebaseUser => {
-		 console.log(firebaseUser);
-		 console.log(user);
-	if(firebaseUser && !loggedIn()){
-		firebase.database().ref('users/' + firebaseUser.uid).set({
-			username: user,
-			weapon: "none",
-			wins: 0
-		});
-		localStorage.setItem("uid", firebaseUser.uid)
-	}
-});
-
+// firebase.auth().signOut();
 
 function submitName(){
-	user = $("#username").val();
-	varinfo = firebase.auth().signInAnonymously();
+	var user = $("#username").val();
+	firebase.auth().signInAnonymously();
+	firebaseUser = firebase.auth().currentUser;
+
+	console.log(firebaseUser);
+
+	privateId = private();
+	
+	firebase.database().ref('users/' + firebaseUser.uid).set({
+		privateid: privateId,
+		username: user,
+		weapon: "none",
+		wins: 0
+	});
+	
+	localStorage.setItem("uid", firebaseUser.uid)
+
+	var query = firebase.database().ref("games");
+		query.once("value")
+		.then(function(snapshot){
+			
+			if(snapshot.hasChildren()){
+			
+			}else{
+				var gameId = private();
+
+				firebase.database().ref('games/' + gameId).set({
+					Player1 : {
+						uid: localStorage.getItem("uid"),
+						name: user,
+						weapon: "none",
+						wins: 0
+					}
+				});
+			}
+	});
 }
+	
+
 
 function loggedIn(){
 	
@@ -37,15 +59,6 @@ function loggedIn(){
 			return true;
 	}
 }
-		// var ref = firebase.database().ref("users/" + localStorage.getItem("uid"));
-			// ref.once("value")
-			// 	.then(function(snapshot){
-			// 		console.log("snap1: " + snapshot);
-			// 		console.log("snap: " + JSON.stringify(snapshot));
-			// 		var name = snapshot.child("username").val();
-			// 		console.log("Name: " + name);
-
-			// 	})
 
 $(document).on("click", ".weapon", function(){
 
@@ -55,3 +68,35 @@ $(document).on("click", ".weapon", function(){
 	firebase.database().ref().update(updates);
 
 });
+
+function private(){
+	var date = new Date();
+   var time = date.getTime();
+   var privateId = time.toString();
+   var key = "";
+   var letter ="";
+   
+   for (var i = 0; i < 4; i++) {
+   	var position = Math.round(Math.random() * privateId.length);
+   	var length =  Math.round(Math.random() * 3 + 1);
+
+   	for (var j = 0; j <= length; j++) {
+   		var caps = Math.round(Math.random());
+   		
+   		if(caps === 0){
+   			letter = String.fromCharCode(Math.round(Math.random() * (90-65)) + 65);
+   		}else{
+   			letter = String.fromCharCode(Math.round(Math.random() * (122-97)) + 97);
+   		}
+
+   		key += letter;
+   
+   	}
+   	
+		privateId = [privateId.slice(0, position), key, privateId.slice(position)].join('');
+
+		key = "";
+   }
+
+   return privateId;
+}
