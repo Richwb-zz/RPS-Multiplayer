@@ -5,50 +5,89 @@
     authDomain: "rpsmp-81e87.firebaseapp.com",
     databaseURL: "https://rpsmp-81e87.firebaseio.com"
   };
-
-  var firebaseUser;
   
 firebase.initializeApp(config);
 
-// firebase.auth().signOut();
+firebase.auth().signOut();
+
+var firebaseUser;
+
+firebase.auth().onAuthStateChanged(function(user) {
+
+	if (user) {
+
+	  	user.updateProfile({
+			displayName: firebaseUser
+		}).then(function() {
+		  firebaseUser = firebase.auth().currentUser;
+		  createUser();
+		}).catch(function(error) {
+		});
+	}
+
+
+});
 
 function submitName(){
-	var user = $("#username").val();
+	firebaseUser = $("#username").val();
 	firebase.auth().signInAnonymously();
-	firebaseUser = firebase.auth().currentUser;
+	// localStorage.setItem("uid", firebaseUser.uid)
+}
 
-	console.log(firebaseUser);
+function createUser(){
+	
+	var query;
 
 	privateId = private();
-	
 	firebase.database().ref('users/' + firebaseUser.uid).set({
 		privateid: privateId,
-		username: user,
+		username: firebaseUser.displayName
 	});
-	
-	// localStorage.setItem("uid", firebaseUser.uid)
+}
 
-	var query = firebase.database().ref("games");
+function searchGames(){
+	query = firebase.database().ref("opengames");
+		query.limitToFirst(1), function(snapshot){
+			console.log(snapshot)
+			if(snapshot.hasChildren()){
+				return true
+			}else{
+				return false;
+			}
+	};
+}
+
+function createGame(){
+
+	query = firebase.database().ref("games");
 		query.once("value")
 		.then(function(snapshot){
 			
-			if(snapshot.hasChildren()){
-				console.log(snapshot);
-			}else{
-				var gameId = private();
+		if(snapshot.hasChildren()){
+			console.log(snapshot);
 
-				firebase.database().ref('games/' + gameId).set({
-					[firebaseUser.uid] : {
-						name: user,
-						weapon: "none",
-						wins: 0
-					}
-				});
-			}
+		}else{
+			var gameId = private();
+
+			firebase.database().ref('games/' + gameId).set({
+				[firebaseUser.uid] : {
+					name: firebaseUser.displayName,
+					weapon: "none",
+					wins: 0
+				}
+			});
+
+			firebase.database().ref('opengames/').set({
+				id : gameId 
+			});
+		}
 	});
-}
-	
 
+}	
+
+function joinGame(){
+
+}
 
 function loggedIn(){
 	
@@ -97,3 +136,13 @@ function private(){
 
    return privateId;
 }
+
+$(document).on("click", "#findGame", function(){
+
+	if(searchGames()){
+		joinGame();
+	}else{
+		createGame();
+	}
+
+});

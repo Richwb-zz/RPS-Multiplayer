@@ -13,7 +13,8 @@ $(document).ready(function(){
 	$(document).on("submit", function(event){
 		event.preventDefault();
 		submitName();
-		displayRPS(event);
+		findGame();
+		//displayRPS(event);
 	});
 
 	function displayRPS(event){
@@ -30,6 +31,9 @@ $(document).ready(function(){
 		return null
 	}
 
+	function findGame(){
+		$("#gameboard").html("<button id='findGame'>Find Game</button>");
+	}
 
 	// $(document).on("weapon","click", function(){
 
