@@ -24,24 +24,21 @@ function submitName(){
 	firebase.database().ref('users/' + firebaseUser.uid).set({
 		privateid: privateId,
 		username: user,
-		weapon: "none",
-		wins: 0
 	});
 	
-	localStorage.setItem("uid", firebaseUser.uid)
+	// localStorage.setItem("uid", firebaseUser.uid)
 
 	var query = firebase.database().ref("games");
 		query.once("value")
 		.then(function(snapshot){
 			
 			if(snapshot.hasChildren()){
-			
+				console.log(snapshot);
 			}else{
 				var gameId = private();
 
 				firebase.database().ref('games/' + gameId).set({
-					Player1 : {
-						uid: localStorage.getItem("uid"),
+					[firebaseUser.uid] : {
 						name: user,
 						weapon: "none",
 						wins: 0
