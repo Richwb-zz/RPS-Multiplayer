@@ -11,6 +11,7 @@ firebase.initializeApp(config);
 firebase.auth().signOut();
 
 var firebaseUser;
+var localVal;
 
 firebase.auth().onAuthStateChanged(function(user) {
 
@@ -45,18 +46,6 @@ function createUser(){
 	});
 }
 
-function searchGames(){
-	query = firebase.database().ref("opengames");
-		query.limitToFirst(1), function(snapshot){
-			console.log(snapshot)
-			if(snapshot.hasChildren()){
-				return true
-			}else{
-				return false;
-			}
-	};
-}
-
 function createGame(){
 
 	query = firebase.database().ref("games");
@@ -64,29 +53,28 @@ function createGame(){
 		.then(function(snapshot){
 			
 		if(snapshot.hasChildren()){
-			console.log(snapshot);
 
 		}else{
-			var gameId = private();
+			var gamePId = private();
 
-			firebase.database().ref('games/' + gameId).set({
-				[firebaseUser.uid] : {
-					name: firebaseUser.displayName,
-					weapon: "none",
-					wins: 0
-				}
-			});
+			joinGame(gamePId);
 
 			firebase.database().ref('opengames/').set({
-				id : gameId 
+				id : gamePId 
 			});
 		}
 	});
 
 }	
 
-function joinGame(){
-
+function joinGame(id){
+	firebase.database().ref('games/' + id).update({
+		[firebaseUser.uid] : {
+			name: firebaseUser.displayName,
+			weapon: "none",
+			wins: 0
+		}
+	});
 }
 
 function loggedIn(){
@@ -95,15 +83,6 @@ function loggedIn(){
 			return true;
 	}
 }
-
-$(document).on("click", ".weapon", function(){
-
-	var updates = {};
-	updates['/users/' + localStorage.getItem("uid") + "/weapon"] = $(this).attr("id");
-
-	firebase.database().ref().update(updates);
-
-});
 
 function private(){
 	var date = new Date();
@@ -138,11 +117,23 @@ function private(){
 }
 
 $(document).on("click", "#findGame", function(){
+	
+	query = firebase.database().ref().child("opengames");
+	query.once("value")
+	.then(function(snapshot){
+		if(snapshot.hasChild("id")){
+			joinGame(snapshot.val().id);
+		}else{
+			createGame();
+		}
+	});
+});
 
-	if(searchGames()){
-		joinGame();
-	}else{
-		createGame();
-	}
+$(document).on("click", ".weapon", function(){
+
+	var updates = {};
+	updates['/users/' + localStorage.getItem("uid") + "/weapon"] = $(this).attr("id");
+
+	firebase.database().ref().update(updates);
 
 });
