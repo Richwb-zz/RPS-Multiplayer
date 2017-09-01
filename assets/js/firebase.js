@@ -10,8 +10,11 @@ firebase.initializeApp(config);
 
 firebase.auth().signOut();
 
+fdb = firebase.database();
+
 var firebaseUser;
-var localVal;
+var privateId;
+var channelId;
 
 firebase.auth().onAuthStateChanged(function(user) {
 
@@ -29,67 +32,55 @@ firebase.auth().onAuthStateChanged(function(user) {
 
 });
 
+function loggedIn(){
+	
+	if(firebaseUser){
+			return true;
+	}
+}
+
 function submitName(){
 	firebaseUser = $("#username").val();
 	firebase.auth().signInAnonymously();
-	// localStorage.setItem("uid", firebaseUser.uid)
 }
 
 function createUser(){
-	
-	var query;
 
 	privateId = private();
-	firebase.database().ref('users/' + firebaseUser.uid).set({
+	fdb.ref('users/' + firebaseUser.uid).set({
 		privateid: privateId,
 		username: firebaseUser.displayName
 	});
 }
 
 function createGame(){
+	channelId = private();
 
-	query = firebase.database().ref("games");
-		query.once("value")
-		.then(function(snapshot){
-			
-		if(snapshot.hasChildren()){
-
-		}else{
-			var gamePId = private();
-
-			joinGame(gamePId);
-
-			firebase.database().ref('opengames/').set({
-				id : gamePId 
-			});
-		}
+	fdb.ref('opengames/').set({
+		id : channelId
 	});
-
 }	
 
-function joinGame(id){
-	firebase.database().ref('games/' + id).update({
+function joinGame(){
+	startHandler();
+	fdb.ref('games/' + channelId).update({
 		[firebaseUser.uid] : {
 			name: firebaseUser.displayName,
 			weapon: "none",
 			wins: 0
 		}
 	});
-}
 
-function loggedIn(){
-	
-	if(localStorage.getItem("uid")){
-			return true;
-	}
+	//waitingForPlayer();
 }
 
 function private(){
 	var date = new Date();
    var time = date.getTime();
-   var privateId = time.toString();
    var key = "";
    var letter ="";
+
+   privateId = time.toString();
    
    for (var i = 0; i < 4; i++) {
    	var position = Math.round(Math.random() * privateId.length);
@@ -118,15 +109,19 @@ function private(){
 
 $(document).on("click", "#findGame", function(){
 	
-	query = firebase.database().ref().child("opengames");
+	query = fdb.ref().child("opengames");
 	query.once("value")
 	.then(function(snapshot){
 		if(snapshot.hasChild("id")){
-			joinGame(snapshot.val().id);
+			console.log("yes");
+			channelId = snapshot.val().id;
 		}else{
 			createGame();
 		}
+		joinGame();
 	});
+
+	
 });
 
 $(document).on("click", ".weapon", function(){
@@ -134,6 +129,16 @@ $(document).on("click", ".weapon", function(){
 	var updates = {};
 	updates['/users/' + localStorage.getItem("uid") + "/weapon"] = $(this).attr("id");
 
-	firebase.database().ref().update(updates);
+	fdb.ref().update(updates);
 
 });
+
+function startHandler(){
+
+fdb.ref("games/" + channelId.toString()).on("value", function(snapshot){
+
+	console.log(snapshot.val().name);
+
+
+});
+}

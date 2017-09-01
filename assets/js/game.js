@@ -17,6 +17,10 @@ $(document).ready(function(){
 		//displayRPS(event);
 	});
 
+	function waitingForPlayer(){
+		$("#gameboard").html("<h1>Waiting for Opponent</h1>");
+	}
+
 	function displayRPS(event){
 
 		timeOut("Rock", 1000);
