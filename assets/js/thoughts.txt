@@ -1,0 +1,1 @@
+Person being added may not always be player 1 or player 2 if a person leaves and other joins they should take the empty slot

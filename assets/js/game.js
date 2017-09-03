@@ -1,40 +1,27 @@
+// Handles non-firebase logic and can pass information to firebase
+
+
 $(document).ready(function(){
 
+	// When play button is clicked check loggedIn function in firebase.js ..../
+	// If not logged in then display the name form goto ..../
 	$("#play").on("click", function(){
 		$("#gameboard").empty();
 		if(!loggedIn()){
 			$("#gameboard").html("<form id='nameform'><input id='username' type='text' placeholder='name'></input><input id='submit' type='submit' value='Submit'></input></form>");
-		}else{
-			displayRPS();
 		}
 	});
 
-
+	// After name is submitted call submitName in firebase.js ..../
+	// call findGame function in this file ..../
 	$(document).on("submit", function(event){
 		event.preventDefault();
 		submitName();
 		findGame();
-		//displayRPS(event);
 	});
 
-	function waitingForPlayer(){
-		$("#gameboard").html("<h1>Waiting for Opponent</h1>");
-	}
-
-	function displayRPS(event){
-
-		timeOut("Rock", 1000);
-		timeOut("Paper", 2000);
-		timeOut("Scissor", 3000);
-		timeOut("<div id='rock' class='weapon d-inline-block'> </div><div id='paper' class='weapon d-inline-block'> </div><div id='scissor' class='weapon d-inline-block'></div>",
-			4000);
-		timeOut("Shoot!", 7000);
-
-		showRound();
-
-		return null
-	}
-
+	// Display the find game button to search for games
+	// click function can be found in firebase.js on ..../
 	function findGame(){
 		$("#gameboard").html("<button id='findGame'>Find Game</button>");
 	}
