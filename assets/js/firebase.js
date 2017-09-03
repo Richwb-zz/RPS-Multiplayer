@@ -12,7 +12,7 @@ firebase.auth().signOut();
 
 fdb = firebase.database();
 
-var firebaseUser;
+var fbu;
 var privateId;
 var channelId;
 
@@ -21,11 +21,12 @@ firebase.auth().onAuthStateChanged(function(user) {
 	if (user) {
 
 	  	user.updateProfile({
-			displayName: firebaseUser
+			displayName: fbu
 		}).then(function() {
-		  firebaseUser = firebase.auth().currentUser;
+		  fbu = firebase.auth().currentUser;
 		  createUser();
 		}).catch(function(error) {
+		
 		});
 	}
 
@@ -34,22 +35,22 @@ firebase.auth().onAuthStateChanged(function(user) {
 
 function loggedIn(){
 	
-	if(firebaseUser){
+	if(fbu){
 			return true;
 	}
 }
 
 function submitName(){
-	firebaseUser = $("#username").val();
+	fbu = $("#username").val();
 	firebase.auth().signInAnonymously();
 }
 
 function createUser(){
 
 	privateId = private();
-	fdb.ref('users/' + firebaseUser.uid).set({
+	fdb.ref('users/' + fbu.uid).set({
 		privateid: privateId,
-		username: firebaseUser.displayName
+		username: fbu.displayName
 	});
 }
 
@@ -57,21 +58,42 @@ function createGame(){
 	channelId = private();
 
 	fdb.ref('opengames/').set({
-		id : channelId
+		[channelId] : channelId
 	});
-}	
+}
 
-function joinGame(){
+function checkCapacity(gameId){
+	var counter = 0;
+	query = fdb.ref("games/" + gameId);
+	query.once("value")
+	.then(function(snapshot){
+		snapshot.forEach(function(child){
+			counter++;
+		});
+		if(counter < 2){
+			channelId = gameId;
+			joinGame("player2");
+		}else{
+			alert("Room Full");
+		}
+	});
+}
+
+function joinGame(player){
 	startHandler();
-	fdb.ref('games/' + channelId).update({
-		[firebaseUser.uid] : {
-			name: firebaseUser.displayName,
+	fdb.ref("games/" + channelId).update({
+		[player] :{
+			player: player,
+			id : fbu.uid,
+			name: fbu.displayName,
 			weapon: "none",
 			wins: 0
 		}
 	});
+}
 
-	//waitingForPlayer();
+function deleteGame(table, gameId){
+	fdb.ref(table).child(channelId).remove();
 }
 
 function private(){
@@ -109,16 +131,18 @@ function private(){
 
 $(document).on("click", "#findGame", function(){
 	
-	query = fdb.ref().child("opengames");
-	query.once("value")
+	fdb.ref().child("opengames")
+	.limitToFirst(1)
+	.once("value")
 	.then(function(snapshot){
-		if(snapshot.hasChild("id")){
-			console.log("yes");
-			channelId = snapshot.val().id;
+		
+		if(snapshot.val() !== null){
+			checkCapacity(Object.keys(snapshot.val())[0]);
 		}else{
 			createGame();
+			joinGame("player1");
 		}
-		joinGame();
+		
 	});
 
 	
@@ -134,11 +158,29 @@ $(document).on("click", ".weapon", function(){
 });
 
 function startHandler(){
-
-fdb.ref("games/" + channelId.toString()).on("value", function(snapshot){
-
-	console.log(snapshot.val().name);
-
-
-});
+	var counter = 0;
+	fdb.ref("games/" + channelId).on("child_added", function(snapshot){
+		snap = snapshot.val();
+		counter++;
+		
+		if(snap.player === "player2" && snap.id !== fbu.uid){
+			deleteGame("opengames", channelId);
+			$('.modal').modal('hide');
+		}else if(snap.player === "player1" && snap.id === fbu.uid){
+			$('.modal').modal({backdrop: "static"});
+		}
+	});
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
