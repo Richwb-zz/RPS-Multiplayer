@@ -19,8 +19,13 @@ fdb = firebase.database();
 
 // user id
 var fbu;
-// join channel id 
+// channel id 
 var channelId;
+
+var playerpos;
+
+var weaponsArray = [];
+
 
 // When user is authenticated 
 // Update their profile info to include their username
@@ -35,7 +40,7 @@ firebase.auth().onAuthStateChanged(function(user) {
 		  fbu = firebase.auth().currentUser;
 		  createUser();
 		}).catch(function(error) {
-		
+			console.log(error);
 		});
 	}
 });
@@ -50,78 +55,132 @@ function loggedIn(){
 	}
 }
 
-
 // Assign the username to fbu global variable
 // Sign in to firebase as an anonamous user
 function submitName(){
-	
 	fbu = $("#username").val();
 	firebase.auth().signInAnonymously();
 }
 
 // Adds users to users table and includes private Id and display name
 function createUser(){
-
 	fdb.ref('users/' + fbu.uid).set({
-		privateid: privateId,
-		username: fbu.displayName
+			privateid: private(),
+			username: fbu.displayName
 	});
 }
 
-// Generate game idea from private function ..../
-// Add game to opengames table
-function setOpenGame(){
 
-	fdb.ref('opengames/').set({
-		[channelId] : channelId
+function getARoom(){
+
+	var action = "";
+	var player = "";
+
+	fdb.ref().child("opengames")
+	.limitToFirst(1)
+	.once("value")
+	.then(function(snapshot){
+
+		if(snapshot.val() !== null){
+			
+			channelId =  Object.keys(snapshot.val())[0];
+			
+			deleteGame("opengames");
+			
+			checkCapacity(Object.keys(snapshot.val())[0]);
+			
+			action = "update";
+			player = "player2";
+		
+		}else{
+			action = "set";
+			player = "player1";
+			setOpenGame();
+		}
+		
+		startHandler();
+		joinGame(player, action);
+		
+
 	});
+
 }
 
 // Checks how many people are in the game to ensure that more then 2 do not join
 // calls games table and searches for gameid and gets number of children
-// If return is less then 2 then set global variable channelId to the gameid
-//		Then call joingame function ..../ this person will always be player 2
+// If return is less then 2 then 
+//		set global variable channelId to the gameid
 // If return is 2 or more then alert that room is full
 function checkCapacity(gameId){
 	var counter = 0;
+	
 	query = fdb.ref("games/" + gameId);
 	query.once("value")
 	.then(function(snapshot){
 		snapshot.forEach(function(child){
 			counter++;
 		});
-		if(counter < 2){
-			channelId = gameId;
-			joinGame("player2");
-		}else{
+		if(counter === 2){
 			alert("Room Full");
 		}
 	});
 }
 
-// Adds passed player to the channelId game
-// Initiates event handlers for players game ..../
-function joinGame(player){
-	privateId = private();
 
-	fdb.ref("games/" + channelId).update({
-		[player] :{
-			player: player,
-			id : fbu.uid,
-			name: fbu.displayName,
-			weapon: "none",
-			wins: 0
-		}
+// Generate game idea from private function ..../
+// Add game to opengames table
+function setOpenGame(){
+	channelId = private();
+
+	fdb.ref('opengames/').set({
+		[channelId] : channelId
 	});
+}
 
-	startHandler();
+// Adds passed player to the channelId game
+// Clear the Gameboard
+// Initiates event handlers for players game ..../
+function joinGame(player, dbAction){
+	playerpos = player;
+
+	var objPlayer = {}; 
+	objPlayer[player] = {
+		id : fbu.uid,
+		name: fbu.displayName,
+		weapon: "none",
+		wins: 0,
+		ready: 0
+	};
+
+	if(dbAction === "set"){
+
+		fdb.ref("games/" + channelId).set(objPlayer)
+		.catch(function(error) {
+			console.log(error);
+		});
+	
+	}else if(dbAction == "update"){
+		fdb.ref("games/" + channelId).update(objPlayer)
+		.catch(function(error) {
+			console.log(error);
+		});
+	}
+	
+	$("#gameboard").html("");
 }
 
 // Deletes element from table with table and gameid as parameter
-function deleteGame(table, gameId){
+function deleteGame(table){
 	fdb.ref(table).child(channelId).remove();
 }
 
+function resetReady(){
+	fdb.ref("games/" + channelId)
+	.child(playerpos)
+	.update({
+		ready:0
+	});
+}
 
 // Generates unique id for game using epoch time as base
 // Chooses randomized locations in string to place characters and how long string will be
@@ -161,70 +220,55 @@ function private(){
    return privateId;
 }
 
-//	Checks against the opengames table to see if any games are awaiting a second player 
-// If game found 
-//		Deletes available game for syncronous error handling, this file line .../
-//			takes in table name and game ID	
-// checks how many people are in game encase someone got in prior to deletion .../
-// If game is not found 
-// 	Adds player to game as player 1 .../
-//		Calls function to set game as open for player 2 ..../
-$(document).on("click", "#findGame", function(){
-	
-	fdb.ref().child("opengames")
-	.limitToFirst(1)
-	.once("value")
-	.then(function(snapshot){
-		
-		if(snapshot.val() !== null){
-			deleteGame("opengames", snapshot.val());
-			checkCapacity(snapshot.val());
-		}else{
-			joinGame("player1");
-			setOpenGame();
-		}
-		
-	});
-
-	
-});
-
-$(document).on("click", ".weapon", function(){
-
-	var updates = {};
-	updates['/users/' + localStorage.getItem("uid") + "/weapon"] = $(this).attr("id");
-
-	fdb.ref().update(updates);
-
-});
-
-
 // Starts all handlers for game
 // Child added
 // 	If player is 1st show modal until 2nd player has joined then hide 
 function startHandler(){
 	var counter = 0;
-	fdb.ref("games/" + channelId).on("child_added", function(snapshot){
+	var snap;
+
+	fdb.ref("games/")
+	.child(channelId)
+	.on("child_added", function(snapshot){
 		snap = snapshot.val();
+
 		counter++;
-		
-		if(snap.player === "player2" && snap.id !== fbu.uid){
+		if(snapshot.key === "player2" && snap.id !== fbu.uid){
 			$('.modal').modal('hide');
-		}else if(snap.player === "player1" && snap.id === fbu.uid){
+		}else if(snapshot.key === "player1" && snap.id === fbu.uid){
 			$('.modal').modal({backdrop: "static"});
 		}
+
+		if(counter === 2){
+			$("#gameboard").html("<button id='readytoplay'>Ready</button>");
+			counter = 0;
+		}
+	});
+
+	fdb.ref("games/" + channelId)
+	.on("value", function(snapshot){
+		if(snapshot.val().player1.ready === 1 && snapshot.val().player2.ready === 1){
+			resetReady();
+			displayRPS();
+		}
+		
 	});
 }
 
+$(document).on("click", "#readytoplay", function(){
+	fdb.ref("games/" + channelId)
+	.child(playerpos)
+	.update({
+		ready: 1
+	})
 
+});
 
+$(document).on("click", ".weapon", function(){
 
-
-
-
-
-
-
-
-
-
+	fdb.ref("games/" + channelId)
+	.child(playerpos)
+	.update({
+		weapon : $(this).attr("id")
+	});
+});

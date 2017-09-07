@@ -1,6 +1,4 @@
 // Handles non-firebase logic and can pass information to firebase
-
-
 $(document).ready(function(){
 
 	// When play button is clicked check loggedIn function in firebase.js ..../
@@ -26,26 +24,4 @@ $(document).ready(function(){
 		$("#gameboard").html("<button id='findGame'>Find Game</button>");
 	}
 
-	// $(document).on("weapon","click", function(){
-
-	// // Upload weapon to database
-
-	// });
-
-	function timeOut(printOut, time){
-		setTimeout(function(){
-			$("#gameboard").html(printOut);
-		}, time);
-
-		return null
-	}
-
-
-	function showRound(){
-		
-
-		$("#gameboard").html("<div class='weapon d-inline-block' data-weapon=''><div class='weapon d-inline-block' data-weapon=''>")
-	}
-
 });
-

@@ -1,1 +1,7 @@
 Person being added may not always be player 1 or player 2 if a person leaves and other joins they should take the empty slot
+
+Create function to handle creation of all buttons
+
+remove play button in the beginning
+
+find game click...manage so that it will add someone to either player 1 or player 2
