@@ -6,13 +6,13 @@ $(document).ready(function(){
 	$("#play").on("click", function(){
 		$("#gameboard").empty();
 		if(!loggedIn()){
-			$("#gameboard").html("<form id='nameform'><input id='username' type='text' placeholder='name'></input><input id='submit' type='submit' value='Submit'></input></form>");
+			$("#gameboard").html("<form id='nameform'><input id='username' type='text' placeholder='name'></input><input id='namesubmit' type='submit' value='Submit'></input></form>");
 		}
 	});
 
 	// After name is submitted call submitName in firebase.js ..../
 	// call findGame function in this file ..../
-	$(document).on("submit", function(event){
+	$(document).on("namesubmit", function(event){
 		event.preventDefault();
 		submitName();
 		findGame();

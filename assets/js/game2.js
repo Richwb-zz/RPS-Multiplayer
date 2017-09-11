@@ -1,19 +1,16 @@
 var weapons = "";
-var weaponsarray = []
+
 var timer = 0;
 var intervalId;
 
-function startGame(){
-	$("#startgame").html("<button id='startgame'></button>")
+function readyButton(){
+	$("#gameboard").html("<button id='readytoplay'>Ready</button>");
 }
 
 // Handles non-firebase logic passed from firebase
 
 function time(event){
-
-	intervalId = setInterval(showRPS, 1000);
-
-	return null
+	intervalId = setInterval(displayRPS, 1000);
 }
 
 function displayRPS(){
@@ -26,40 +23,70 @@ function displayRPS(){
 	}else if(timer === 3){
 		$("#gameboard").html("Scissor");
 	}else if(timer === 4){
-		$("#gameboard").html("<div id='rock' class='weapon d-inline-block'><img src='assets/images/rock.png'></div><div id='paper' class='weapon d-inline-block'><img src='assets/images/paper.png'></div><div id='scissor' class='weapon d-inline-block'><img src='assets/images/scissors.png'></div>");
+		$("#gameboard").html("<div id='rock' class='weapon d-inline-block'><img src='assets/images/rock.png'></div><div id='paper' class='weapon d-inline-block'><img src='assets/images/paper.png'></div><div id='scissors' class='weapon d-inline-block'><img src='assets/images/scissors.png'></div>");
 	}else if(timer === 7){
 		$("#gameboard").html("Shoot!");
 	}else if(timer === 8){
 		clearInterval(intervalId);
-		showWeapons();
-		$("#gameboard").html(weaponsArray[0] + weaponsArray[1]);
+		timer = 0;
+		readyButton();
+		$("#gameboard").html($("#gameboard").html() + weaponsArray[0] + weaponsArray[1]);
+		;
 	}
-
-	return null
 }
 
-function showWeapons(){
+function processRound(snap){
 	
-	fdb.ref("games/" + channelId)
-	.once("value", function(snapshot){
+	weaponone = snap.player1.weapon;
+	weapontwo = snap.player2.weapon;
+	scoreone = snap.player1.wins;
+	scoretwo = snap.player2.wins;
 
-	if(snapshot.val().player1.id === fbu.uid ){
-		weaponsArray[0] = "<div id='yourweapon' class='weapon d-inline-block'><img src='assets/images/" + snapshot.val().player1.weapon + ".png'></image></div>";
+	if(snap.player1.id === fbu.uid ){
+		weaponsArray[0] = "<div id='yourweapon' class='weapon d-inline-block'><img src='assets/images/" + weaponone + ".png'></image></div>";
 	}else{
-		weaponsArray[1] = "<div id='thereweapon' class='weapon d-inline-block'><img src='assets/images/" + snapshot.val().player1.weapon + ".png'></image></div>";
+		weaponsArray[1] = "<div id='thereweapon' class='weapon d-inline-block'><img src='assets/images/" + weaponone + ".png'></image></div>";
 	}
 
 
-	if(snapshot.val().player2.id === fbu.uid){	
-		weaponsArray[0] = "<div id='yourweapon' class='weapond-inline-block'><img src='assets/images/" + snapshot.val().player2.weapon + ".png'></image></div>";
+	if(snap.player2.id === fbu.uid){	
+		weaponsArray[0] = "<div id='yourweapon' class='weapond-inline-block'><img src='assets/images/" + weapontwo + ".png'></image></div>";
 	}else{
-		weaponsArray[1] = "<div id='thereweapon' class='weapon d-inline-block'><img src='assets/images/" + snapshot.val().player2.weapon + ".png'></image></div>";
+		weaponsArray[1] = "<div id='thereweapon' class='weapon d-inline-block'><img src='assets/images/" + weapontwo + ".png'></image></div>";
 	}
 
-});
 
-	return weaponsarray[0];
-}
+	if(weaponone === weapontwo){
+		$("#ties").text(parseInt($("#ties").text())++);
+	}else if(weaponone === "rock"){
+
+		if(weapontwo === "scissors"){
+			scoreone++;
+		}else if(weapontwo === "paper"){
+			scoretwo++;
+		}
+	}else if(weaponone === "paper"){
+
+		if(weapontwo === "rock"){
+			scoreone++;
+		}else if(weapontwo === "scissors"){
+			scoretwo++;
+		}
+	}else if(weaponone === "scissors"){
+
+		if(weapontwo === "paper"){
+			scoreone++;
+		}else if(weapontwo === "rock"){
+			scoretwo++;
+		}
+	}
+
+	if(scoreone > snap.player1.wins){
+		return ["player1" ,scoreone];
+	}else if(scoretwo > snap.player2.wins){
+		return ["player2", scoretwo];
+	}
+};
 
 $(document).on("click", "#findGame", function(){
 	getARoom();

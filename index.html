@@ -15,24 +15,36 @@
 
 		<div class="container">
 			<div id="scoreboard">
-				<div id="playerone">
-					<div id="onename"></div>
-					<div id="onewins"></div>
+				<div id="player1">
+					<div id="player1name"></div>
+					<div id="player1win" class="hide">Wins: <span id="player1score"></span></div>
 				</div>
 				<div>
 					<div id="channel"></div>
-					<div id="ties"></div>
+					<div id="tieslabel" class="hide">Ties: <span id="ties"></span></div>
 				</div>
-				<div id="playertwo">
-					<div id="twoname"></div>
-					<div id="twowins"></div>
+				<div id="player2">
+					<div id="player2name"></div>
+					<div id="player2win" class="hide">Wins: <span id="player2score"></span></div>
 				</div>
 			</div>
+			
 			<div class="gameboard d-flex justify-content-center">
 				<div id="gameboard" class="align-self-center justify-content-center">
 					<button id="play" class="btn btn-info">Play</button>
 				</div>
 			</div>
+			
+			<div id="chatbox">
+				<div id="chatwindow">
+				</div>
+				<form>
+					<input id="chattext" type="text">
+					<input is="chatsubmit" type="submit">
+				</form>
+
+			</div>
+			
 			<div class="modal fade">
 			  <div class="modal-dialog" role="document">
 			    <div class="modal-content">
