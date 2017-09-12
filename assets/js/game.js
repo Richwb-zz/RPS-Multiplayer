@@ -30,4 +30,30 @@ $(document).ready(function(){
 		$("#gameboard").html("<button id='findGame'>Find Game</button>");
 	}
 
+	$("#leaveGame").on("click", function(){
+	
+		chat(fbu.displayName + "has left the game");
+		fdb.ref().off();
+
+		$("#player1").addClass("hide");
+		$("#player2").addClass("hide");
+		$("#channelties").addClass("hide");
+		$("#chatbox").addClass("hide");
+
+		$("#player1name").text("");
+		$("#player2name").text("");
+		$("#player1score").text("");
+		$("#player2score").text("");
+		$("#channel").text("");
+		$("#ties").text("");
+
+		$("#chatwindow").text("");
+		$("#chattext").text("");
+
+		fdb.ref("games/" + channelId + "/game/" + playerPos).remove();
+		setOpenGame();
+		findGame();
+	});
+
 });
+

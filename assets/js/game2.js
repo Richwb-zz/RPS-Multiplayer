@@ -3,6 +3,14 @@ var weapons = "";
 var timer = 0;
 var intervalId;
 
+function modal(status){
+	if(status === "hide"){
+		$('.modal').modal('hide');
+	}else if{status === "static"}{
+		$('.modal').modal({backdrop: "static"});
+	}
+}
+
 function readyButton(){
 	$("#gameboard").html("<button id='readytoplay'>Ready</button>");
 }

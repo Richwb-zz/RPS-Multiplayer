@@ -15,17 +15,17 @@
 
 		<div class="container">
 			<div id="scoreboard">
-				<div id="player1">
+				<div id="player1" class="hide">
 					<div id="player1name"></div>
-					<div id="player1win" class="hide">Wins: <span id="player1score"></span></div>
+					<div id="player1win" >Wins: <span id="player1score"></span></div>
 				</div>
-				<div>
+				<div id="channelties" class="hide">
 					<div id="channel"></div>
-					<div id="tieslabel" class="hide">Ties: <span id="ties"></span></div>
+					<div id="tieslabel">Ties: <span id="ties"></span></div>
 				</div>
-				<div id="player2">
+				<div id="player2" class="hide">
 					<div id="player2name"></div>
-					<div id="player2win" class="hide">Wins: <span id="player2score"></span></div>
+					<div id="player2win">Wins: <span id="player2score"></span></div>
 				</div>
 			</div>
 			
@@ -40,11 +40,11 @@
 				</div>
 				<form>
 					<input id="chattext" type="text">
-					<input id="chatsubmit" type="submit">
+					<input id="chatsubmit" type="submit" value="Send">
 				</form>
-
+				
 			</div>
-			
+			<input id="leaveGame" type="submit" value="leave">
 			<div class="modal fade">
 			  <div class="modal-dialog" role="document">
 			    <div class="modal-content">
@@ -63,25 +63,23 @@
 
 		<!-- Moment JS -->
 		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.js"></script>
+		
 		<!-- JQuery CDN -->
 		<script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
 
 		<!-- Firebase CDN -->
-		
-
 		<script src="https://www.gstatic.com/firebasejs/4.2.0/firebase-app.js"></script>
 		<script src="https://www.gstatic.com/firebasejs/4.2.0/firebase.js"></script>
 		<script src="https://www.gstatic.com/firebasejs/4.2.0/firebase-database.js"></script>
 		
 		<script type="text/javascript" src="assets/js/game2.js"></script>
+		
 		<!-- Local Firebase js -->
 		<script type="text/javascript" src="assets/js/firebase.js"></script>
 
-	
-
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
-		
 		<!-- Bootstrap 4.0 CDN -->
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
+
 		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
 
 		<!-- Local Game Javascript -->

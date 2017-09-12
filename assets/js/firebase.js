@@ -166,19 +166,20 @@ function joinGame(player, dbAction){
 		});
 	}
 		
-	fdb.ref("games/" + channelId + "/chat").push({
-		time : firebase.database.ServerValue.TIMESTAMP,
-		sender : "System",
-		message : fbu.displayName + " has joined the game"
-	});
+	chat(fbu.displayName + " has joined the game");
 }
 
-function chat(){
-	console.log($("#chattext").val());
+function chat(message = "", sender = ""){
+	
+	if($("#chattext").val() !=""){
+		var message = $("#chattext").val();
+		var sender = fbu.displayName
+	}
+
 	fdb.ref("games/" + channelId + "/chat").push({
 		time: firebase.database.ServerValue.TIMESTAMP,
-		sender : fbu.displayName,
-		message : $("#chattext").val()
+		sender : sender,
+		message : message
 	});
 }
 
@@ -247,15 +248,15 @@ function startHandler(){
 		snap = snapshot.val();
 		$("#" + snapshot.key + "name").text(snap.name);
 		$("#" + snapshot.key + "score").text("0");
-		$("#" + snapshot.key + "win").removeClass("hide");
+		$("#" + snapshot.key).removeClass("hide");
+		$("#" + snapshot.key + "channelties").removeClass("hide");
 		$("#channel").html(channelId);
 
 		counter++;
 		if(snapshot.key === "player2" && snap.id !== fbu.uid){
-			$('.modal').modal('hide');
-
+			modal("hide");
 		}else if(snapshot.key === "player1" && snap.id === fbu.uid){
-			$('.modal').modal({backdrop: "static"});
+			modal("static");
 		}
 
 		if(counter == 2){
@@ -278,33 +279,35 @@ function startHandler(){
 
 		$("#ties").text(snap.ties);
 		
-		if(snap.player1.ready === 1 && snap.player2.ready === 1){
-			resetReady();
-			time();
-		}
+		if(snap.player1 && snap.player2){
+			if(snap.player1.ready === 1 && snap.player2.ready === 1){
+				resetReady();
+				time();
+			}
 
-		if(snap.player1.weapon !== "none" && snap.player2.weapon !== "none"){
+			if(snap.player1.weapon !== "none" && snap.player2.weapon !== "none"){
 
-			var results = processRound(snap);
+				var results = processRound(snap);
 
-			fdb.ref("games/" + channelId + "/game")
-				.child("player1")
-				.update({
-					weapon: "none"
-			})
-
-			fdb.ref("games/" + channelId + "/game")
-				.child("player2")
-				.update({
-					weapon: "none"
-			})
-
-			if(results[0]){
 				fdb.ref("games/" + channelId + "/game")
-				.child(results[0])
-				.update({
-					wins: results[1]
+					.child("player1")
+					.update({
+						weapon: "none"
 				})
+
+				fdb.ref("games/" + channelId + "/game")
+					.child("player2")
+					.update({
+						weapon: "none"
+				})
+
+				if(results[0]){
+					fdb.ref("games/" + channelId + "/game")
+					.child(results[0])
+					.update({
+						wins: results[1]
+					})
+				}
 			}
 		}
 	});
@@ -315,8 +318,15 @@ function startHandler(){
 		var snap = snapshot.val();
 		var time = moment(snap.time).format("H:mm:ss");
 
-		$("#chatwindow").html($("#chatwindow").html() + time + " " + snap.sender + " " + snap.message + "<br>");
+		$("#chatwindow").html($("#chatwindow").html() + time + " " + snap.sender + ": " + snap.message + "<br>");
 	});
+
+	// fdb.ref.child('.info/connected')
+	// .on('value'), fucntion(snapshot){
+	// 	if(snapshot.val() === false){
+	// 		if
+	// 	}
+	// }
 }
 
 $(document).on("click", "#readytoplay", function(){
