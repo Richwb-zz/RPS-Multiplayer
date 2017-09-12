@@ -94,14 +94,17 @@ function getARoom(){
 			action = "set";
 			player = "player1";
 			channelId = private();
-
-			fdb.ref('opengames/').set({
-				[channelId] : channelId
-			});
+			setOpenGame();
 		}
 		
 		startHandler();
 		joinGame(player, action);
+	});
+}
+
+function setOpenGame(){
+	fdb.ref('opengames/').set({
+			[channelId] : channelId
 	});
 }
 
