@@ -63,8 +63,8 @@ function submitName(){
 // Adds users to users table and includes private Id and display name
 function createUser(){
 	fdb.ref('users/' + fbu.uid).set({
-			privateid: private(),
-			username: fbu.displayName
+		privateid: private(),
+		username: fbu.displayName
 	});
 }
 
@@ -109,7 +109,7 @@ function getARoom(){
 function checkCapacity(gameId){
 	var counter = 0;
 	
-	query = fdb.ref("games/" + gameId);
+	query = fdb.ref("games/" + gameId + "game");
 	query.once("value")
 	.then(function(snapshot){
 		snapshot.forEach(function(child){
@@ -138,7 +138,7 @@ function setOpenGame(){
 function joinGame(player, dbAction){
 	playerPos = player;
 
-	var objPlayer = {}; 
+	var objPlayer = {};
 	
 	objPlayer = {
 		ties: 0
@@ -149,22 +149,37 @@ function joinGame(player, dbAction){
 		name: fbu.displayName,
 		weapon: "none",
 		wins: 0,
-		ready: 0
+		ready: 0,
 	};
 
 	if(dbAction === "set"){
 
-		fdb.ref("games/" + channelId).set(objPlayer)
+		fdb.ref("games/" + channelId + "/game").set(objPlayer)
 		.catch(function(error) {
 			console.log(error);
 		});
 	
 	}else if(dbAction == "update"){
-		fdb.ref("games/" + channelId).update(objPlayer)
+		fdb.ref("games/" + channelId  + "/game").update(objPlayer)
 		.catch(function(error) {
 			console.log(error);
 		});
 	}
+		
+	fdb.ref("games/" + channelId + "/chat").push({
+		time : firebase.database.ServerValue.TIMESTAMP,
+		sender : "System",
+		message : fbu.displayName + " has joined the game"
+	});
+}
+
+function chat(){
+	console.log($("#chattext").val());
+	fdb.ref("games/" + channelId + "/chat").push({
+		time: firebase.database.ServerValue.TIMESTAMP,
+		sender : fbu.displayName,
+		message : $("#chattext").val()
+	});
 }
 
 // Deletes element from table with table and gameid as parameter
@@ -173,7 +188,7 @@ function deleteGame(table){
 }
 
 function resetReady(){
-	fdb.ref("games/" + channelId)
+	fdb.ref("games/" + channelId  + "/game")
 	.child(playerPos)
 	.update({
 		ready:0
@@ -225,10 +240,10 @@ function startHandler(){
 	var counter = 0;
 	var snap;
 
-	fdb.ref("games/")
-	.child(channelId)
+	fdb.ref("games/" + channelId)
+	.child("game")
 	.on("child_added", function(snapshot){
-		
+
 		snap = snapshot.val();
 		$("#" + snapshot.key + "name").text(snap.name);
 		$("#" + snapshot.key + "score").text("0");
@@ -238,6 +253,7 @@ function startHandler(){
 		counter++;
 		if(snapshot.key === "player2" && snap.id !== fbu.uid){
 			$('.modal').modal('hide');
+
 		}else if(snapshot.key === "player1" && snap.id === fbu.uid){
 			$('.modal').modal({backdrop: "static"});
 		}
@@ -248,7 +264,7 @@ function startHandler(){
 		}
 	});
 
-	fdb.ref("games/" + channelId)
+	fdb.ref("games/" + channelId  + "/game")
 	.on("value", function(snapshot){
 		snap = snapshot.val();
 		
@@ -264,7 +280,6 @@ function startHandler(){
 		
 		if(snap.player1.ready === 1 && snap.player2.ready === 1){
 			resetReady();
-
 			time();
 		}
 
@@ -272,20 +287,20 @@ function startHandler(){
 
 			var results = processRound(snap);
 
-			fdb.ref("games/" + channelId)
+			fdb.ref("games/" + channelId + "/game")
 				.child("player1")
 				.update({
 					weapon: "none"
 			})
 
-			fdb.ref("games/" + channelId)
+			fdb.ref("games/" + channelId + "/game")
 				.child("player2")
 				.update({
 					weapon: "none"
 			})
 
 			if(results[0]){
-				fdb.ref("games/" + channelId)
+				fdb.ref("games/" + channelId + "/game")
 				.child(results[0])
 				.update({
 					wins: results[1]
@@ -293,10 +308,19 @@ function startHandler(){
 			}
 		}
 	});
+
+	fdb.ref("games/" + channelId)
+	.child("chat")
+	.on("child_added", function(snapshot){
+		var snap = snapshot.val();
+		var time = moment(snap.time).format("H:mm:ss");
+
+		$("#chatwindow").html($("#chatwindow").html() + time + " " + snap.sender + " " + snap.message + "<br>");
+	});
 }
 
 $(document).on("click", "#readytoplay", function(){
-	fdb.ref("games/" + channelId)
+	fdb.ref("games/" + channelId + "/game")
 	.child(playerPos)
 	.update({
 		ready: 1
@@ -306,7 +330,7 @@ $(document).on("click", "#readytoplay", function(){
 
 $(document).on("click", ".weapon", function(){
 
-	fdb.ref("games/" + channelId)
+	fdb.ref("games/" + channelId + "/game")
 	.child(playerPos)
 	.update({
 		weapon : $(this).attr("id")

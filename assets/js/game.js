@@ -12,10 +12,16 @@ $(document).ready(function(){
 
 	// After name is submitted call submitName in firebase.js ..../
 	// call findGame function in this file ..../
-	$(document).on("namesubmit", function(event){
+	$(document).on("click", "#namesubmit", function(event){
 		event.preventDefault();
 		submitName();
 		findGame();
+	});
+
+	$(document).on("click", "#chatsubmit", function(event){
+		event.preventDefault();
+		chat();
+		
 	});
 
 	// Display the find game button to search for games
