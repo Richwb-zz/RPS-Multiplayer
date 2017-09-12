@@ -6,7 +6,7 @@ var intervalId;
 function modal(status){
 	if(status === "hide"){
 		$('.modal').modal('hide');
-	}else if{status === "static"}{
+	}else if(status === "static"){
 		$('.modal').modal({backdrop: "static"});
 	}
 }

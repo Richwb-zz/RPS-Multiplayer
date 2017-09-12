@@ -32,8 +32,9 @@ $(document).ready(function(){
 
 	$("#leaveGame").on("click", function(){
 	
-		chat(fbu.displayName + "has left the game");
-		fdb.ref().off();
+		chat(fbu.displayName + " has left the game");
+		fdb.ref("games/" + channelId  + "/game").off();
+		fdb.ref("games/" + channelId  + "/chat").off();
 
 		$("#player1").addClass("hide");
 		$("#player2").addClass("hide");
@@ -51,8 +52,9 @@ $(document).ready(function(){
 		$("#chattext").text("");
 
 		fdb.ref("games/" + channelId + "/game/" + playerPos).remove();
-		setOpenGame();
+		
 		findGame();
+	
 	});
 
 });

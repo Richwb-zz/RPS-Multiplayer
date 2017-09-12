@@ -93,7 +93,11 @@ function getARoom(){
 		}else{
 			action = "set";
 			player = "player1";
-			setOpenGame();
+			channelId = private();
+
+			fdb.ref('opengames/').set({
+				[channelId] : channelId
+			});
 		}
 		
 		startHandler();
@@ -118,17 +122,6 @@ function checkCapacity(gameId){
 		if(counter === 2){
 			alert("Room Full");
 		}
-	});
-}
-
-
-// Generate game idea from private function ..../
-// Add game to opengames table
-function setOpenGame(){
-	channelId = private();
-
-	fdb.ref('opengames/').set({
-		[channelId] : channelId
 	});
 }
 
@@ -310,6 +303,13 @@ function startHandler(){
 				}
 			}
 		}
+	});
+
+	fdb.ref("games/" + channelId + "/game")
+	.on("child_removed", function(){
+		chat(fbu.displayName + " has left the game");
+		modal("static");
+		setOpenGame();
 	});
 
 	fdb.ref("games/" + channelId)
