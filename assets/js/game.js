@@ -30,8 +30,9 @@ $(document).ready(function(){
 		$("#gameboard").html("<button id='findGame'>Find Game</button>");
 	}
 
-	$("#leaveGame").on("click", function(){
 	
+	$("#leaveGame").on("click", function(){
+		
 		chat(fbu.displayName + " has left the game");
 		fdb.ref("games/" + channelId  + "/game").off();
 		fdb.ref("games/" + channelId  + "/chat").off();
@@ -51,11 +52,11 @@ $(document).ready(function(){
 		$("#chatwindow").text("");
 		$("#chattext").text("");
 
-		fdb.ref("games/" + channelId + "/game/" + playerPos).remove();
-		
+		//make or send to function to remove
+		deleteGame("player");
+
 		findGame();
 	
-	});
-
 });
 
+});

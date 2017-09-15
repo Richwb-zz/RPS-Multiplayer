@@ -22,7 +22,7 @@ var fbu;
 // channel id 
 var channelId;
 
-var playerPos;
+var playerPos = "";
 
 var weaponsArray = [];
 // When user is authenticated 
@@ -72,39 +72,48 @@ function createUser(){
 function getARoom(){
 
 	var action = "";
-	var player = "";
 
-	fdb.ref().child("opengames")
+	fdb.ref("opengames")
+
 	.limitToFirst(1)
 	.once("value")
 	.then(function(snapshot){
-
 		if(snapshot.val() !== null){
 			
-			channelId =  Object.keys(snapshot.val())[0];
-			
-			deleteGame("opengames");
-			
-			checkCapacity(Object.keys(snapshot.val())[0]);
+			snapshot.forEach(function(opensnapshot){
+				channelId = opensnapshot.val().channel;
+				playerPos = opensnapshot.val().position;
+			});
+			console.log(channelId);
+			deleteGame(Object.keys(snapshot.val())[0]);
+			checkCapacity(channelId);
 			
 			action = "update";
-			player = "player2";
-		
 		}else{
-			action = "set";
-			player = "player1";
 			channelId = private();
+			console.log("test");
 			setOpenGame();
+			playerPos = "player1";
+			action = "set";
+			join = true;
 		}
-		
+
 		startHandler();
-		joinGame(player, action);
+		joinGame(playerPos, action);
+
 	});
 }
 
 function setOpenGame(){
-	fdb.ref('opengames/').set({
-			[channelId] : channelId
+	if(playerPos === "player1" || playerPos === ""){
+		openPos = "player2";
+	}else if (playerPos === "player2"){
+		openPos = "player1";
+	}
+	
+	fdb.ref('opengames').push({
+			channel : channelId,
+			position: openPos
 	});
 }
 
@@ -132,8 +141,6 @@ function checkCapacity(gameId){
 // Clear the Gameboard
 // Initiates event handlers for players game ..../
 function joinGame(player, dbAction){
-	playerPos = player;
-
 	var objPlayer = {};
 	
 	objPlayer = {
@@ -180,8 +187,17 @@ function chat(message = "", sender = ""){
 }
 
 // Deletes element from table with table and gameid as parameter
-function deleteGame(table){
-	fdb.ref(table).child(channelId).remove();
+function deleteGame(toDelete){
+	console.log("player " + playerPos);
+	var path = "";
+	console.log("delete " + toDelete);
+	if(toDelete === "player"){
+		path = "games/" + channelId + "/game/" + playerPos;
+	}else {
+		path = "opengames/" + toDelete;
+	}
+
+	fdb.ref(path).remove();
 }
 
 function resetReady(){
@@ -249,11 +265,11 @@ function startHandler(){
 		$("#channel").html(channelId);
 
 		counter++;
-		if(snapshot.key === "player2" && snap.id !== fbu.uid){
-			modal("hide");
-		}else if(snapshot.key === "player1" && snap.id === fbu.uid){
-			modal("static");
-		}
+		// if(snapshot.key === "player2" && snap.id !== fbu.uid){
+		// 	modal("hide");
+		// }else if(snapshot.key === "player1" && snap.id === fbu.uid){
+		// 	modal("static");
+		// }
 
 		if(counter == 2){
 			readyButton();
@@ -265,46 +281,57 @@ function startHandler(){
 	.on("value", function(snapshot){
 		snap = snapshot.val();
 		
-		if(snap.player1){
+		if(snapshot.hasChild("player1")){
 			$("#player1score").text(snap.player1.wins);
 		}
 
-		if(snap.player2){
+		if(snapshot.hasChild("player2")){
 			$("#player2score").text(snap.player2.wins);
 		}
 
-		$("#ties").text(snap.ties);
+		if(snapshot.hasChild("ties")){
+			$("#ties").text(snap.ties);
+		}
 		
-		if(snap.player1 && snap.player2){
-			if(snap.player1.ready === 1 && snap.player2.ready === 1){
-				resetReady();
-				time();
-			}
+		if(snapshot.hasChild("player1") && snapshot.hasChild("player2")) {
+			
+			modal("hide");
 
-			if(snap.player1.weapon !== "none" && snap.player2.weapon !== "none"){
 
-				var results = processRound(snap);
 
-				fdb.ref("games/" + channelId + "/game")
-					.child("player1")
-					.update({
-						weapon: "none"
-				})
+			if(snap.player1 && snap.player2){
+				if(snap.player1.ready === 1 && snap.player2.ready === 1){
+					resetReady();
+					time();
+				}
 
-				fdb.ref("games/" + channelId + "/game")
-					.child("player2")
-					.update({
-						weapon: "none"
-				})
+				if(snap.player1.weapon !== "none" && snap.player2.weapon !== "none"){
 
-				if(results[0]){
+					var results = processRound(snap);
+
 					fdb.ref("games/" + channelId + "/game")
-					.child(results[0])
-					.update({
-						wins: results[1]
+						.child("player1")
+						.update({
+							weapon: "none"
 					})
+
+					fdb.ref("games/" + channelId + "/game")
+						.child("player2")
+						.update({
+							weapon: "none"
+					})
+
+					if(results[0]){
+						fdb.ref("games/" + channelId + "/game")
+						.child(results[0])
+						.update({
+							wins: results[1]
+						})
+					}
 				}
 			}
+		}else{
+			modal("static");
 		}
 	});
 
@@ -312,6 +339,7 @@ function startHandler(){
 	.on("child_removed", function(){
 		chat(fbu.displayName + " has left the game");
 		modal("static");
+		console.log("test");
 		setOpenGame();
 	});
 
@@ -323,16 +351,10 @@ function startHandler(){
 
 		$("#chatwindow").html($("#chatwindow").html() + time + " " + snap.sender + ": " + snap.message + "<br>");
 	});
-
-	// fdb.ref.child('.info/connected')
-	// .on('value'), fucntion(snapshot){
-	// 	if(snapshot.val() === false){
-	// 		if
-	// 	}
-	// }
 }
 
 $(document).on("click", "#readytoplay", function(){
+	console.log("pos" + playerPos);
 	fdb.ref("games/" + channelId + "/game")
 	.child(playerPos)
 	.update({
