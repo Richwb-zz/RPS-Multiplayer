@@ -1,5 +1,5 @@
-html, body,.container, .gameboard{
-	height: 100%
+html, body,.container, .gameboard, .chatbox{
+	height: 300px;
 }
 
 .weapon{

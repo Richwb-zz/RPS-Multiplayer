@@ -87,7 +87,6 @@ function getARoom(){
 			console.log(channelId);
 			deleteGame(Object.keys(snapshot.val())[0]);
 			checkCapacity(channelId);
-			
 			action = "update";
 		}else{
 			channelId = private();
@@ -95,7 +94,6 @@ function getARoom(){
 			setOpenGame();
 			playerPos = "player1";
 			action = "set";
-			join = true;
 		}
 
 		startHandler();
@@ -257,6 +255,9 @@ function startHandler(){
 	.child("game")
 	.on("child_added", function(snapshot){
 
+		$("#chatbox").removeClass("hide");
+		$("#leaveGame").removeClass("hide");
+
 		snap = snapshot.val();
 		$("#" + snapshot.key + "name").text(snap.name);
 		$("#" + snapshot.key + "score").text("0");
@@ -265,11 +266,6 @@ function startHandler(){
 		$("#channel").html(channelId);
 
 		counter++;
-		// if(snapshot.key === "player2" && snap.id !== fbu.uid){
-		// 	modal("hide");
-		// }else if(snapshot.key === "player1" && snap.id === fbu.uid){
-		// 	modal("static");
-		// }
 
 		if(counter == 2){
 			readyButton();

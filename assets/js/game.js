@@ -20,6 +20,7 @@ $(document).ready(function(){
 
 	$(document).on("click", "#chatsubmit", function(event){
 		event.preventDefault();
+		$(this).value("");
 		chat();
 		
 	});
@@ -41,7 +42,7 @@ $(document).ready(function(){
 		$("#player2").addClass("hide");
 		$("#channelties").addClass("hide");
 		$("#chatbox").addClass("hide");
-
+		$("#leaveGame").addClass("hide");
 		$("#player1name").text("");
 		$("#player2name").text("");
 		$("#player1score").text("");
