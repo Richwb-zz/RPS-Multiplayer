@@ -44,12 +44,14 @@ function displayRPS(){
 }
 
 function processRound(snap){
-	
-	weaponone = snap.player1.weapon;
-	weapontwo = snap.player2.weapon;
-	scoreone = snap.player1.wins;
-	scoretwo = snap.player2.wins;
+	console.log("snap " + JSON.stringify(snap));
+	var weaponone = snap.player1.weapon;
+	var weapontwo = snap.player2.weapon;
+	var scoreone = snap.player1.wins;
+	var scoretwo = snap.player2.wins;
+	var ties = snap.ties;
 
+	
 	if(snap.player1.id === fbu.uid ){
 		weaponsArray[0] = "<div id='yourweapon' class='weapon d-inline-block'><img src='assets/images/" + weaponone + ".png'></image></div>";
 	}else{
@@ -65,7 +67,7 @@ function processRound(snap){
 
 
 	if(weaponone === weapontwo){
-		$("#ties").text(parseInt($("#ties").text())++);
+		ties++;
 	}else if(weaponone === "rock"){
 
 		if(weapontwo === "scissors"){
@@ -88,11 +90,14 @@ function processRound(snap){
 			scoretwo++;
 		}
 	}
-
+	
 	if(scoreone > snap.player1.wins){
 		return ["player1" ,scoreone];
 	}else if(scoretwo > snap.player2.wins){
 		return ["player2", scoretwo];
+	}else if(ties > snap.ties){
+		return ["ties", scoretwo];
+		
 	}
 };
 

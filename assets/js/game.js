@@ -20,8 +20,8 @@ $(document).ready(function(){
 
 	$(document).on("click", "#chatsubmit", function(event){
 		event.preventDefault();
-		$(this).value("");
 		chat();
+		$("#chattext").val("");
 		
 	});
 

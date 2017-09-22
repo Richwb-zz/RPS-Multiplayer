@@ -74,7 +74,6 @@ function getARoom(){
 	var action = "";
 
 	fdb.ref("opengames")
-
 	.limitToFirst(1)
 	.once("value")
 	.then(function(snapshot){
@@ -198,12 +197,16 @@ function deleteGame(toDelete){
 	fdb.ref(path).remove();
 }
 
-function resetReady(){
+function resetGame(){
 	fdb.ref("games/" + channelId  + "/game")
 	.child(playerPos)
 	.update({
+		weapon: "none",
 		ready:0
 	});
+
+	$(".weapon").html("");
+
 }
 
 // Generates unique id for game using epoch time as base
@@ -276,7 +279,7 @@ function startHandler(){
 	fdb.ref("games/" + channelId  + "/game")
 	.on("value", function(snapshot){
 		snap = snapshot.val();
-		
+		console.log(snapshot.val());
 		if(snapshot.hasChild("player1")){
 			$("#player1score").text(snap.player1.wins);
 		}
@@ -293,39 +296,31 @@ function startHandler(){
 			
 			modal("hide");
 
-
-
 			if(snap.player1 && snap.player2){
 				if(snap.player1.ready === 1 && snap.player2.ready === 1){
-					resetReady();
+					resetGame();
 					time();
 				}
 
 				if(snap.player1.weapon !== "none" && snap.player2.weapon !== "none"){
 
 					var results = processRound(snap);
-
-					fdb.ref("games/" + channelId + "/game")
-						.child("player1")
+					if(results[0] === "ties"){
+						fdb.ref("games/" + channelId + "/game")
 						.update({
-							weapon: "none"
-					})
-
-					fdb.ref("games/" + channelId + "/game")
-						.child("player2")
-						.update({
-							weapon: "none"
-					})
-
-					if(results[0]){
+							ites: results[1],
+						});
+					}else{
 						fdb.ref("games/" + channelId + "/game")
 						.child(results[0])
 						.update({
-							wins: results[1]
-						})
+							wins: results[1],
+						});
 					}
 				}
+
 			}
+		
 		}else{
 			modal("static");
 		}
@@ -335,7 +330,6 @@ function startHandler(){
 	.on("child_removed", function(){
 		chat(fbu.displayName + " has left the game");
 		modal("static");
-		console.log("test");
 		setOpenGame();
 	});
 
@@ -350,7 +344,6 @@ function startHandler(){
 }
 
 $(document).on("click", "#readytoplay", function(){
-	console.log("pos" + playerPos);
 	fdb.ref("games/" + channelId + "/game")
 	.child(playerPos)
 	.update({
