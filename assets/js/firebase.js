@@ -169,6 +169,14 @@ function joinGame(player, dbAction){
 	chat(fbu.displayName + " has joined the game");
 }
 
+function playerReady(playerOne, playerTwo){
+	console.log("players " + playerOne + playerTwo);
+	if(playerOne === true && playerTwo === true){
+		resetGame();
+		time();
+	}
+}
+
 function chat(message = "", sender = ""){
 	
 	if($("#chattext").val() !=""){
@@ -253,6 +261,8 @@ function private(){
 function startHandler(){
 	var counter = 0;
 	var snap;
+	var readyPlayerOne = false;
+	var readyPlayerTwo = false;
 
 	fdb.ref("games/" + channelId)
 	.child("game")
@@ -276,49 +286,60 @@ function startHandler(){
 		}
 	});
 
+	fdb.ref("games/" + channelId  + "/game/player1")
+	.on("value", function(snapshot){
+		if(snapshot.val()){
+			$("#player1score").text(snapshot.val().wins);
+			console.log(snapshot.val().ready)
+			if(snapshot.val().ready === "true"){
+				readyPlayerOne = true;
+				playerReady(readyPlayerOne, readyPlayerTwo);
+			}
+		}
+	});
+
+	fdb.ref("games/" + channelId  + "/game/player2")
+	.on("value", function(snapshot){
+		if(snapshot.val()){
+			$("#player2score").text(snapshot.val().wins);
+
+			if(snapshot.val().ready === "true"){
+				readyPlayerTwo = true;
+				playerReady(readyPlayerOne, readyPlayerTwo);
+			}
+		}
+	});
+
+	fdb.ref("games/" + channelId  + "/game/ties")
+	.on("value", function(snapshot){
+		$("#ties").text(snapshot.val());
+	});
+
+
 	fdb.ref("games/" + channelId  + "/game")
 	.on("value", function(snapshot){
 		snap = snapshot.val();
 		console.log(snapshot.val());
-		if(snapshot.hasChild("player1")){
-			$("#player1score").text(snap.player1.wins);
-		}
-
-		if(snapshot.hasChild("player2")){
-			$("#player2score").text(snap.player2.wins);
-		}
-
-		if(snapshot.hasChild("ties")){
-			$("#ties").text(snap.ties);
-		}
 		
 		if(snapshot.hasChild("player1") && snapshot.hasChild("player2")) {
 			
 			modal("hide");
 
-			if(snap.player1 && snap.player2){
-				if(snap.player1.ready === 1 && snap.player2.ready === 1){
-					resetGame();
-					time();
+			if(snap.player1.weapon !== "none" && snap.player2.weapon !== "none"){
+
+				var results = processRound(snap);
+				if(results[0] === "ties"){
+					fdb.ref("games/" + channelId + "/game")
+					.update({
+						ties: results[1],
+					});
+				}else{
+					fdb.ref("games/" + channelId + "/game")
+					.child(results[0])
+					.update({
+						wins: results[1],
+					});
 				}
-
-				if(snap.player1.weapon !== "none" && snap.player2.weapon !== "none"){
-
-					var results = processRound(snap);
-					if(results[0] === "ties"){
-						fdb.ref("games/" + channelId + "/game")
-						.update({
-							ites: results[1],
-						});
-					}else{
-						fdb.ref("games/" + channelId + "/game")
-						.child(results[0])
-						.update({
-							wins: results[1],
-						});
-					}
-				}
-
 			}
 		
 		}else{
@@ -347,7 +368,7 @@ $(document).on("click", "#readytoplay", function(){
 	fdb.ref("games/" + channelId + "/game")
 	.child(playerPos)
 	.update({
-		ready: 1
+		ready: "true"
 	})
 
 });
